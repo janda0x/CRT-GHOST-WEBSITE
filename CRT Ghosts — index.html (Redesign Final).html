@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050505">
+<title>CRT GHOSTS — Lost Broadcast</title>
+<meta name="description" content="You unplugged the TV in 1999. Nobody told me. 10,000 fully on-chain animated ghosts on Ethereum.">
+<meta property="og:title" content="CRT GHOSTS">
+<meta property="og:description" content="You unplugged the TV in 1999. Nobody told me.">
+<style>
+:root{--z:#050505;--a:#0b0b0b;--b:#111111;--c:#1a1a1a;--w0:#f5f5f5;--w1:#bdbdbd;--w2:#7a7a7a}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--z);color:var(--w1);font-family:'Courier New',Courier,monospace;min-height:100vh;overflow-x:hidden;animation:flk 14s ease-in-out infinite}
+@keyframes flk{0%,100%{opacity:1}88%{opacity:1}89%{opacity:.97}90%{opacity:1}94%{opacity:1}95%{opacity:.985}96%{opacity:1}}
+/* CRT overlays */
+#scanlines{position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.13) 2px,rgba(0,0,0,.13) 4px);pointer-events:none;z-index:9998}
+#vignette{position:fixed;inset:0;background:radial-gradient(ellipse 85% 85% at 50% 50%,transparent 50%,rgba(0,0,0,.7) 100%);pointer-events:none;z-index:9997}
+/* scrollbar */
+::-webkit-scrollbar{width:2px}::-webkit-scrollbar-track{background:var(--z)}::-webkit-scrollbar-thumb{background:var(--c)}
+
+/* TICKER */
+.ticker{background:var(--z);border-bottom:1px solid var(--c);overflow:hidden;height:24px;display:flex;align-items:center}
+.ticker-inner{display:inline-block;white-space:nowrap;animation:tick 30s linear infinite;font-size:8px;letter-spacing:3px;color:var(--w2)}
+@keyframes tick{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:500;display:flex;align-items:center;justify-content:space-between;padding:13px 28px;background:rgba(5,5,5,.98);border-bottom:1px solid var(--c);gap:16px}
+.logo{font-size:12px;font-weight:700;letter-spacing:7px;color:var(--w0);white-space:nowrap;flex-shrink:0;text-shadow:0 0 14px rgba(245,245,245,.15)}
+nav{display:flex;gap:22px;align-items:center;flex:1;justify-content:center}
+nav a{color:var(--w2);font-size:8px;letter-spacing:3px;text-decoration:none;transition:color .2s;white-space:nowrap}
+nav a:hover{color:var(--w0)}
+.btn-w{background:transparent;border:1px solid var(--c);color:var(--w2);font-family:inherit;font-size:8px;letter-spacing:3px;padding:8px 16px;cursor:pointer;transition:all .25s;white-space:nowrap;flex-shrink:0}
+.btn-w:hover,.btn-w.on{background:var(--w0);color:var(--z);border-color:var(--w0)}
+@media(max-width:700px){nav{display:none}.logo{font-size:11px}header{padding:12px 16px}}
+
+/* HERO */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:100px 24px 80px}
+#noiseCv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.04;pointer-events:none;image-rendering:pixelated}
+#arena{position:absolute;inset:0;pointer-events:none}
+/* broadcast labels */
+.bcast{position:absolute;font-size:8px;letter-spacing:3px;color:var(--w2);pointer-events:none;user-select:none}
+.bt{top:22px}.bl{left:28px}.br{right:28px;text-align:right}
+.blink-r{display:inline-flex;align-items:center;gap:5px}
+.rdot{width:5px;height:5px;background:var(--w0);border-radius:50%;display:inline-block;animation:blink .95s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+/* floating ghosts */
+.g-el{position:absolute;pointer-events:all;cursor:crosshair;image-rendering:pixelated;transition:filter .3s,opacity .5s;filter:brightness(.8)}
+.g-el:hover{filter:brightness(1.3)}
+.g-el.zap{transition:transform .4s ease-in,opacity .4s ease-in;transform:scale(3) !important;opacity:0 !important;pointer-events:none}
+/* hero content */
+.hi{position:relative;z-index:10;text-align:center;pointer-events:none;max-width:860px;width:100%}
+.hi-pre{font-size:8px;letter-spacing:7px;color:var(--w2);margin-bottom:16px}
+h1{font-size:clamp(68px,17vw,148px);letter-spacing:clamp(4px,2.5vw,18px);color:var(--w0);line-height:.88;margin-bottom:0;text-shadow:0 0 60px rgba(245,245,245,.08),0 0 120px rgba(245,245,245,.04)}
+.h1-crt{display:block;font-size:clamp(16px,3.5vw,28px);letter-spacing:clamp(16px,5vw,36px);color:var(--w2);margin-bottom:10px}
+.h-rule{width:1px;height:48px;background:linear-gradient(to bottom,transparent,var(--c),transparent);margin:22px auto}
+.h-tag{font-size:12px;color:var(--w2);font-style:italic;letter-spacing:1px;line-height:1.7;margin-bottom:68px}
+.h-hint{font-size:8px;letter-spacing:5px;color:var(--w2);animation:fp 3s ease-in-out infinite;border-top:1px solid var(--c);padding-top:14px}
+@keyframes fp{0%,100%{opacity:.25}50%{opacity:.75}}
+
+/* TICKER-BOTTOM */
+.ticker-bottom{position:absolute;bottom:0;left:0;right:0;background:rgba(5,5,5,.6);border-top:1px solid var(--c);overflow:hidden;height:22px;display:flex;align-items:center}
+.ticker-bottom .ticker-inner{animation:tick 24s linear infinite;font-size:7px;letter-spacing:4px;color:var(--c);border-top:none}
+
+/* STATS */
+.stats{display:flex;flex-wrap:wrap;background:var(--a);border-top:1px solid var(--c);border-bottom:1px solid var(--c)}
+.st{flex:1;min-width:110px;padding:18px 16px;border-right:1px solid var(--c);display:flex;flex-direction:column;gap:5px}
+.st:last-child{border-right:none}
+.st-l{font-size:7px;letter-spacing:4px;color:var(--w2)}
+.st-v{font-size:17px;color:var(--w0);letter-spacing:2px}
+
+/* SECTION LABEL */
+.sec{padding:52px 28px 0;max-width:1120px;margin:0 auto;width:100%}
+.sec-lbl{font-size:7px;letter-spacing:6px;color:var(--w2);display:flex;align-items:center;gap:14px;padding-bottom:22px;border-bottom:1px solid var(--c)}
+.sec-lbl::before{content:'//';color:var(--c)}
+
+/* MINT */
+.mwrap{max-width:560px;margin:0 auto;padding:0 20px}
+.step-flow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;padding:24px 0;font-size:7px;letter-spacing:2px;color:var(--c)}
+.step-flow .sa{color:var(--w1)}
+.step-flow .active{color:var(--w0)}
+.step-arr{color:var(--c);font-size:10px}
+
+.mc{background:var(--a);border:1px solid var(--c);margin-bottom:6px;padding:26px}
+.mc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;font-size:7px;letter-spacing:4px;color:var(--w2)}
+.mc-head span{color:var(--w0)}
+.mc-body{font-size:10px;color:var(--w2);line-height:1.8;margin-bottom:20px;padding-left:12px;border-left:1px solid var(--c)}
+
+.btn-catch{width:100%;background:transparent;border:1px solid var(--c);color:var(--w2);font-family:inherit;font-size:9px;letter-spacing:5px;padding:13px;cursor:pointer;transition:all .25s}
+.btn-catch:hover:not(:disabled){border-color:var(--w0);color:var(--w0);background:rgba(245,245,245,.03)}
+.btn-catch:disabled{color:var(--c);border-color:var(--c);cursor:not-allowed}
+.btn-catch.done{border-color:var(--w1);color:var(--w1)}
+
+.qrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.qlbl{font-size:7px;letter-spacing:4px;color:var(--w2)}
+.qctrl{display:flex;align-items:center;gap:10px}
+.qb{width:26px;height:26px;background:var(--b);border:1px solid var(--c);color:var(--w1);font-family:inherit;font-size:15px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.qb:hover{border-color:var(--w1);color:var(--w0)}
+.qn{width:30px;text-align:center;font-size:14px;color:var(--w0)}
+
+.prow{display:flex;justify-content:space-between;font-size:9px;color:var(--w2);padding:5px 0;border-bottom:1px solid var(--c)}
+.prow:last-child{border-bottom:none}
+.prow span:last-child{color:var(--w0)}
+.ptotal{display:flex;justify-content:space-between;font-size:12px;color:var(--w0);padding:12px 0 18px;border-top:1px solid var(--c);margin-top:4px}
+.btn-mint{width:100%;background:var(--w0);border:none;color:var(--z);font-family:inherit;font-size:9px;font-weight:700;letter-spacing:6px;padding:13px;cursor:pointer;transition:all .2s}
+.btn-mint:hover{background:var(--w1)}
+.btn-mint:disabled{background:var(--c);color:var(--w2);cursor:not-allowed}
+
+/* ARCHIVE */
+.awrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.a-intro{font-size:10px;color:var(--w2);line-height:1.85;padding:14px 0 26px;max-width:520px}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:2px}
+.acard{background:var(--a);border:1px solid var(--c);padding:14px;cursor:pointer;transition:border-color .25s}
+.acard:hover{border-color:var(--w2)}
+.acard svg{width:100%;height:auto;display:block;image-rendering:pixelated;margin-bottom:10px}
+.acard-id{font-size:7px;letter-spacing:3px;color:var(--w2);margin-bottom:3px}
+.acard-num{font-size:10px;color:var(--w0)}
+
+/* TRAITS */
+.twrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:2px;margin-top:22px}
+.tc{background:var(--a);border:1px solid var(--c);padding:16px}
+.tn{font-size:7px;letter-spacing:4px;color:var(--w2);margin-bottom:9px}
+.tv{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:7px;padding:3px 7px;border:1px solid var(--c);color:var(--w2);letter-spacing:1px}
+.tag.r{border-color:rgba(189,189,189,.2);color:var(--w1)}
+.tag.e{border-color:rgba(245,245,245,.35);color:var(--w0)}
+
+/* NOTES */
+.nwrap{max-width:1120px;margin:0 auto;padding:0 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2px;margin-top:22px}
+.nc{background:var(--a);border:1px solid var(--c);padding:28px 24px}
+.nc-num{font-size:7px;letter-spacing:3px;color:var(--c);margin-bottom:14px}
+.nc-title{font-size:11px;letter-spacing:3px;color:var(--w0);margin-bottom:12px}
+.nc-text{font-size:10px;color:var(--w2);line-height:1.9}
+
+/* LINKS */
+.lwrap{max-width:1120px;margin:0 auto;padding:0 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:2px;margin-top:22px}
+.lcard{background:var(--a);border:1px solid var(--c);padding:22px 24px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .25s}
+.lcard:hover{border-color:var(--w2)}
+.lcard-lbl{font-size:7px;letter-spacing:4px;color:var(--w2)}
+.lcard-title{font-size:11px;color:var(--w0);letter-spacing:2px}
+.lcard-url{font-size:7px;color:var(--w2);word-break:break-all;letter-spacing:.5px}
+.lcard-arr{color:var(--w2);font-size:14px;align-self:flex-end;margin-top:4px;transition:color .2s}
+.lcard:hover .lcard-arr{color:var(--w0)}
+
+/* FOOTER */
+footer{border-top:1px solid var(--c);padding:28px;margin-top:72px;text-align:center}
+.flinks{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;margin-bottom:14px}
+.flinks a{font-size:7px;letter-spacing:4px;color:var(--w2);text-decoration:none;transition:color .2s}
+.flinks a:hover{color:var(--w0)}
+.fcopy{font-size:7px;letter-spacing:2px;color:var(--c)}
+.fca{font-size:6px;color:var(--c);margin-top:6px;line-height:1.9;word-break:break-all;letter-spacing:.5px}
+
+/* POPUP */
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:800;display:none;align-items:center;justify-content:center;padding:20px}
+.ovl.on{display:flex}
+.pop{background:var(--a);border:1px solid var(--w2);padding:38px 28px;max-width:340px;width:100%;text-align:center;animation:popin .2s ease}
+@keyframes popin{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+.pop-ghost-wrap{width:96px;height:96px;margin:0 auto 18px;image-rendering:pixelated;animation:gfl 2.8s ease-in-out infinite}
+.pop-ghost-wrap svg{width:100%;height:100%}
+@keyframes gfl{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.pop-title{font-size:13px;letter-spacing:6px;color:var(--w0);margin-bottom:8px}
+.pop-sub{font-size:9px;color:var(--w2);line-height:1.95;margin-bottom:24px}
+.pop-sub em{color:var(--w1);font-style:normal}
+.pop-sub strong{color:var(--w0)}
+.btn-claim{width:100%;background:var(--w0);border:none;color:var(--z);font-family:inherit;font-size:9px;font-weight:700;letter-spacing:6px;padding:13px;cursor:pointer;margin-bottom:10px;transition:all .2s}
+.btn-claim:hover{background:var(--w1)}
+.btn-dis{background:transparent;border:none;color:var(--w2);font-family:inherit;font-size:8px;letter-spacing:3px;cursor:pointer;transition:color .2s}
+.btn-dis:hover{color:var(--w1)}
+
+/* TX */
+.txovl{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:900;display:none;align-items:center;justify-content:center;padding:20px}
+.txovl.on{display:flex}
+.txbox{background:var(--a);border:1px solid var(--c);padding:34px 26px;max-width:300px;width:100%;text-align:center}
+.txspin{width:28px;height:28px;border:1px solid var(--c);border-top-color:var(--w2);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tx-t{font-size:8px;letter-spacing:5px;color:var(--w0);margin-bottom:8px}
+.tx-s{font-size:8px;color:var(--w2);line-height:1.8}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--a);border:1px solid var(--c);font-size:8px;letter-spacing:2px;padding:10px 18px;z-index:1000;opacity:0;transition:all .3s;pointer-events:none;max-width:92vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:var(--w0);color:var(--w0)}
+.toast.er{border-color:var(--w2);color:var(--w2)}
+.toast.nf{border-color:var(--w1);color:var(--w1)}
+
+.gap{margin-bottom:52px}
+</style>
+</head>
+<body>
+<div id="scanlines"></div>
+<div id="vignette"></div>
+
+<!-- TICKER TOP -->
+<div class="ticker">
+  <div class="ticker-inner">
+    &nbsp;&nbsp;&nbsp;EMERGENCY BROADCAST SYSTEM &nbsp;·&nbsp; THIS IS NOT A TEST &nbsp;·&nbsp; CRT GHOSTS ON ETHEREUM &nbsp;·&nbsp; 10,000 ENTITIES &nbsp;·&nbsp; FULLY ON-CHAIN &nbsp;·&nbsp; NO SIGNAL &nbsp;·&nbsp; STAND BY &nbsp;·&nbsp; CH 00 &nbsp;·&nbsp;
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">CRT GHOSTS</div>
+  <nav>
+    <a href="#mint">MINT</a>
+    <a href="#archive">ARCHIVE</a>
+    <a href="#traits">TRAITS</a>
+    <a href="https://etherscan.io/address/0xc19fe671cb7bae0641cd940550bb6398ef68dad4" target="_blank">CONTRACT ↗</a>
+    <a href="https://opensea.io/collection/crt-ghosts" target="_blank">OPENSEA ↗</a>
+    <a href="https://x.com/CRTGhosts" target="_blank">X ↗</a>
+  </nav>
+  <button class="btn-w" id="btnW">CONNECT WALLET</button>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <canvas id="noiseCv"></canvas>
+  <div id="arena"></div>
+
+  <div class="bcast bt bl" id="bcTL">CH 00 &nbsp;·&nbsp; NO SIGNAL</div>
+  <div class="bcast bt br">
+    <span class="blink-r"><span class="rdot"></span> REC &nbsp;·&nbsp;</span>
+    <span id="bcTs">00:00:00</span>
+  </div>
+
+  <div class="hi">
+    <div class="hi-pre">PARANORMAL TRANSMISSION DETECTED — FREQUENCY UNKNOWN</div>
+    <h1>
+      <span class="h1-crt">CRT</span>
+      GHOSTS
+    </h1>
+    <div class="h-rule"></div>
+    <p class="h-tag">"You unplugged the TV in 1999.<br>Nobody told me."</p>
+    <p class="h-hint">// CLICK A GHOST TO INTERCEPT THE FREE SIGNAL //</p>
+  </div>
+
+  <div class="ticker-bottom">
+    <div class="ticker-inner">
+      &nbsp;&nbsp;&nbsp;NO SIGNAL &nbsp;·&nbsp; STAND BY &nbsp;·&nbsp; FREQUENCY UNKNOWN &nbsp;·&nbsp; ENTITY COUNT: LOADING &nbsp;·&nbsp; CH 00 &nbsp;·&nbsp; NO SIGNAL &nbsp;·&nbsp; STAND BY &nbsp;·&nbsp;
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="st"><div class="st-l">ENTITIES MINTED</div><div class="st-v" id="sMinted">—</div></div>
+  <div class="st"><div class="st-l">MAX SUPPLY</div><div class="st-v">10,000</div></div>
+  <div class="st"><div class="st-l">FREE CLAIMED</div><div class="st-v" id="sFree">—</div></div>
+  <div class="st"><div class="st-l">PRICE</div><div class="st-v">0.0002 ETH</div></div>
+  <div class="st"><div class="st-l">ROYALTY</div><div class="st-v">3%</div></div>
+  <div class="st"><div class="st-l">NETWORK</div><div class="st-v">ETH</div></div>
+</div>
+
+<!-- MINT -->
+<div class="sec" style="margin-top:52px" id="mint">
+  <div class="sec-lbl">INCOMING SIGNAL</div>
+</div>
+<div class="mwrap" style="margin-top:26px">
+  <div class="step-flow">
+    <span id="s1" class="active">CONNECT</span><span class="step-arr">→</span>
+    <span id="s2">INTERCEPT</span><span class="step-arr">→</span>
+    <span id="s3">RECEIVE</span><span class="step-arr">→</span>
+    <span id="s4">CLAIM FREE</span><span class="step-arr">→</span>
+    <span id="s5">MINT</span>
+  </div>
+  <div class="mc">
+    <div class="mc-head">FREE TRANSMISSION <span>1 / WALLET</span></div>
+    <div class="mc-body">A ghost is drifting through the signal. Intercept it to lock the frequency and claim your free entity. Signature expires 10 minutes after capture.</div>
+    <button class="btn-catch" id="btnCatch">[ INTERCEPT SIGNAL ]</button>
+  </div>
+  <div class="mc">
+    <div class="mc-head">CLAIM ENTITY <span>0.0002 ETH</span></div>
+    <div class="qrow">
+      <span class="qlbl">QUANTITY (MAX 10)</span>
+      <div class="qctrl">
+        <button class="qb" id="qMin">−</button>
+        <span class="qn" id="qNum">1</span>
+        <button class="qb" id="qMax">+</button>
+      </div>
+    </div>
+    <div class="prow"><span>PRICE PER ENTITY</span><span>0.0002 ETH</span></div>
+    <div class="prow"><span>ENTITY #1</span><span id="p1" style="color:var(--w0)">FREE</span></div>
+    <div class="ptotal"><span>TOTAL</span><span id="ptot">0.0000 ETH</span></div>
+    <button class="btn-mint" id="btnMint">ACQUIRE</button>
+  </div>
+</div>
+<div class="gap"></div>
+
+
+
+<!-- TRAITS -->
+<div class="sec" id="traits">
+  <div class="sec-lbl">ENTITY PARAMETERS</div>
+</div>
+<div class="twrap">
+  <div class="tgrid">
+    <div class="tc"><div class="tn">CLARITY</div><div class="tv"><span class="tag">Static 50%</span><span class="tag">Faint 28%</span><span class="tag r">Clear 15%</span><span class="tag e">Manifest 7%</span></div></div>
+    <div class="tc"><div class="tn">SPECTRUM</div><div class="tv"><span class="tag">White Static</span><span class="tag">Phosphor Green</span><span class="tag">Amber</span><span class="tag">Ice</span><span class="tag">Magenta</span><span class="tag">Blood</span><span class="tag">Violet</span><span class="tag r">Gold 5%</span><span class="tag e">Prismatic 4%</span></div></div>
+    <div class="tc"><div class="tn">FORM</div><div class="tv"><span class="tag">Standard 30%</span><span class="tag">Slim 20%</span><span class="tag">Wide 18%</span><span class="tag">Hunched 15%</span><span class="tag r">Lurking 10%</span><span class="tag e">Colossal 7%</span></div></div>
+    <div class="tc"><div class="tn">HEM</div><div class="tv"><span class="tag">Scallop 32%</span><span class="tag">Ragged 26%</span><span class="tag">Tendrils 17%</span><span class="tag">Clean Cut 11%</span><span class="tag r">Dissolving 9%</span><span class="tag e">Rooted 5%</span></div></div>
+    <div class="tc"><div class="tn">EYES</div><div class="tv"><span class="tag">Dots</span><span class="tag">Hollow</span><span class="tag">Wide</span><span class="tag">Uneven</span><span class="tag">Cyclops</span><span class="tag r">Bleeding 7%</span><span class="tag r">Glowing 6%</span><span class="tag e">Void 4%</span></div></div>
+    <div class="tc"><div class="tn">ANOMALY</div><div class="tv"><span class="tag">None 58%</span><span class="tag">Interference</span><span class="tag">Signal Gap</span><span class="tag">Tilted</span><span class="tag">Double Exposure</span><span class="tag r">Phase Shift 4%</span><span class="tag e">Inverted 2%</span></div></div>
+    <div class="tc"><div class="tn">AURA</div><div class="tv"><span class="tag">None</span><span class="tag r">Pale Glow</span><span class="tag e">Radiant ✦</span></div></div>
+    <div class="tc"><div class="tn">FLICKER</div><div class="tv"><span class="tag">Still 55%</span><span class="tag">Slow Pulse 25%</span><span class="tag r">Flicker 15%</span><span class="tag e">Violent 5%</span></div></div>
+    <div class="tc"><div class="tn">ECHO</div><div class="tv"><span class="tag">None 88%</span><span class="tag r">Echo 9%</span><span class="tag e">Twin Echo 3%</span></div></div>
+    <div class="tc"><div class="tn">CHANNEL</div><div class="tv"><span class="tag">Off Air</span><span class="tag">Blue Screen</span><span class="tag">Dead Channel</span><span class="tag">Scanlines</span><span class="tag r">Phosphor Burn</span><span class="tag e">Deep Static 5%</span></div></div>
+    <div class="tc"><div class="tn">BROADCAST</div><div class="tv"><span class="tag">None 60%</span><span class="tag">REC Dot</span><span class="tag">Tracking Bars</span><span class="tag r">Corner Static</span><span class="tag e">Signal Meter</span></div></div>
+    <div class="tc"><div class="tn">MOUTH</div><div class="tv"><span class="tag">None 28%</span><span class="tag">Line</span><span class="tag">Hollow O</span><span class="tag">Jagged</span><span class="tag r">Scream 10%</span><span class="tag e">Static Patch</span></div></div>
+  </div>
+</div>
+<div class="gap"></div>
+
+<!-- NOTES -->
+<div class="sec">
+  <div class="sec-lbl">TRANSMISSION NOTES</div>
+</div>
+<div class="nwrap">
+  <div class="nc"><div class="nc-num">01 / 03</div><div class="nc-title">FULLY ON-CHAIN</div><div class="nc-text">Every CRT Ghost is generated and stored entirely on Ethereum. The SVG art, metadata, and trait derivation execute inside the smart contract, on demand. No IPFS. No external servers. No expiry date. The art persists as long as the blockchain does.</div></div>
+  <div class="nc"><div class="nc-num">02 / 03</div><div class="nc-title">ANIMATED</div><div class="nc-text">Ghosts with Flicker traits are animated via native SVG &lt;animate&gt; — embedded in the on-chain data itself. No JavaScript required. The animation runs inside any viewer that renders SVG, including OpenSea and blockchain explorers.</div></div>
+  <div class="nc"><div class="nc-num">03 / 03</div><div class="nc-title">THE GRAIL</div><div class="nc-text">One token in the collection carries Manifest + Prismatic + Radiant simultaneously. It exists. Its token ID is unknown. The community will find it, or it will remain undiscovered indefinitely. That is the point.</div></div>
+</div>
+<div class="gap"></div>
+
+<!-- LINKS -->
+<div class="sec">
+  <div class="sec-lbl">OFFICIAL CHANNELS</div>
+</div>
+<div class="lwrap" style="margin-bottom:52px">
+  <a class="lcard" href="https://opensea.io/collection/crt-ghosts" target="_blank">
+    <div class="lcard-lbl">MARKETPLACE</div>
+    <div class="lcard-title">VIEW COLLECTION</div>
+    <div class="lcard-url">opensea.io/collection/crt-ghosts</div>
+    <div class="lcard-arr">↗</div>
+  </a>
+  <a class="lcard" href="https://x.com/CRTGhosts" target="_blank">
+    <div class="lcard-lbl">SOCIAL</div>
+    <div class="lcard-title">FOLLOW UPDATES</div>
+    <div class="lcard-url">x.com/CRTGhosts</div>
+    <div class="lcard-arr">↗</div>
+  </a>
+  <a class="lcard" href="https://etherscan.io/address/0xc19fe671cb7bae0641cd940550bb6398ef68dad4" target="_blank">
+    <div class="lcard-lbl">BLOCKCHAIN EXPLORER</div>
+    <div class="lcard-title">VIEW CONTRACT</div>
+    <div class="lcard-url">0xc19fe671cb7bae0641cd940550bb6398ef68dad4</div>
+    <div class="lcard-arr">↗</div>
+  </a>
+  <a class="lcard" href="https://onchainchecker.xyz/collection/ethereum/0xc19fe671cb7bae0641cd940550bb6398ef68dad4/1" target="_blank">
+    <div class="lcard-lbl">ON-CHAIN METADATA</div>
+    <div class="lcard-title">EXPLORE ON-CHAIN</div>
+    <div class="lcard-url">onchainchecker.xyz</div>
+    <div class="lcard-arr">↗</div>
+  </a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="flinks">
+    <a href="https://opensea.io/collection/crt-ghosts" target="_blank">OPENSEA</a>
+    <a href="https://x.com/CRTGhosts" target="_blank">X / TWITTER</a>
+    <a href="https://etherscan.io/address/0xc19fe671cb7bae0641cd940550bb6398ef68dad4" target="_blank">ETHERSCAN</a>
+    <a href="https://onchainchecker.xyz/collection/ethereum/0xc19fe671cb7bae0641cd940550bb6398ef68dad4/1" target="_blank">ONCHAINCHECKER</a>
+  </div>
+  <div class="fcopy">© 2026 CRT GHOSTS — ALL ENTITIES ON-CHAIN FOREVER</div>
+  <div class="fca">
+    MAIN: 0xc19fE671cB7bAe0641CD940550bB6398EF68DaD4 &nbsp;·&nbsp; RENDERER: 0xE82EB6a9564b8ae4C4d07B0ccd046D7c9d8bdB3f
+  </div>
+</footer>
+
+<!-- POPUP -->
+<div class="ovl" id="ovl">
+  <div class="pop">
+    <div class="pop-ghost-wrap" id="popG"></div>
+    <div class="pop-title">SIGNAL LOCKED</div>
+    <div class="pop-sub">The entity has been intercepted.<br><em>Claim your free CRT Ghost now.</em><br><br>This signature expires in <strong id="cdTimer">10:00</strong></div>
+    <button class="btn-claim" id="btnClaim">CLAIM FREE ENTITY</button>
+    <button class="btn-dis" id="btnDis">release signal</button>
+  </div>
+</div>
+
+<!-- TX -->
+<div class="txovl" id="txOvl">
+  <div class="txbox">
+    <div class="txspin"></div>
+    <div class="tx-t" id="txT">CONFIRM IN WALLET</div>
+    <div class="tx-s" id="txS">Approve the transaction in your wallet.</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+<script>
+'use strict';
+const CA='0xc19fE671cB7bAe0641CD940550bB6398EF68DaD4';
+const RPC='https://ethereum-rpc.publicnode.com';
+const ABI=['function mint(uint256,uint256,bytes) payable','function freeClaimed(address) view returns (bool)','function totalSupply() view returns (uint256)','function freeMinted() view returns (uint256)','function mintActive() view returns (bool)'];
+const PRICE=200000000000000n;
+
+// ===== PIXEL GHOST GENERATOR (XorShift32 — matches NFT collection style) =====
+function ghostXS(seed){
+  let s=((seed^0x5A17C0DE)>>>0)||0x9E3779B9;
+  return()=>{s^=s<<13;s>>>=0;s^=s>>17;s^=s<<5;s>>>=0;return s};
+}
+function genGhostSVG(seed,px){
+  const r=ghostXS(seed),rp=n=>r()%n,G=24,CX=12;
+  const top=2+rp(2),btm=19+rp(2);
+  let hw=2+rp(2);const W={};
+  for(let y=top;y<=btm;y++){W[y]=Math.min(hw,7);if(hw<7&&rp(100)<65)hw++;}
+  const B=new Set();
+  for(let y=top;y<=btm;y++){const w=W[y];for(let x=CX-w;x<CX+w;x++)if(x>=0&&x<G)B.add(x+','+y);}
+  const off=rp(3);
+  for(let x=0;x<G;x++)if(B.has(x+','+btm)&&(x+off)%3===0)B.delete(x+','+btm);
+  const lo=60,hi=228,sp=hi-lo,byC={};
+  B.forEach(k=>{const[x,y]=k.split(',').map(Number);const v=lo+Math.floor(rp(8)*sp/7);const h='#'+v.toString(16).padStart(2,'0').repeat(3);(byC[h]=byC[h]||[]).push(`M${x} ${y}h1v1h-1z`);});
+  const eyeY=top+3+rp(2),dxL=CX-4,dxR=CX+2,eyes=[];
+  [[dxL,eyeY],[dxL+1,eyeY],[dxL,eyeY+1],[dxL+1,eyeY+1],[dxR,eyeY],[dxR+1,eyeY],[dxR,eyeY+1],[dxR+1,eyeY+1]].forEach(([x,y])=>{if(B.has(x+','+y))eyes.push(`M${x} ${y}h1v1h-1z`);});
+  let p='';for(const[c,s]of Object.entries(byC))p+=`<path fill="${c}" d="${s.join('')}"/>`;
+  if(eyes.length)p+=`<path fill="#111111" d="${eyes.join('')}"/>`;
+  const sz=px||60;
+  return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${sz}" height="${sz}" shape-rendering="crispEdges">${p}</svg>`;
+}
+
+// ===== NOISE CANVAS =====
+(()=>{
+  const c=document.getElementById('noiseCv');
+  const ctx=c.getContext('2d');
+  const resize=()=>{c.width=Math.min(innerWidth,500);c.height=Math.min(innerHeight,350);};
+  resize();window.addEventListener('resize',resize);
+  const draw=()=>{const{width:w,height:h}=c;const img=ctx.createImageData(w,h);const d=img.data;for(let i=0;i<d.length;i+=4){if(Math.random()<.045){const v=Math.floor(Math.random()*80);d[i]=d[i+1]=d[i+2]=v;d[i+3]=v*2.8;}}ctx.putImageData(img,0,0);};
+  setInterval(draw,110);
+})();
+
+// ===== CLOCK =====
+(()=>{const el=document.getElementById('bcTs');const u=()=>{const n=new Date();el.textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':');};u();setInterval(u,1000);})();
+
+// ===== FLOATING GHOSTS =====
+const arena=document.getElementById('arena');
+const SEEDS=[7,113,742,1503,2198,3774];
+const FL=[];
+function spawnF(i){
+  const seed=SEEDS[i%6]+(i*17);const sz=48+Math.floor(Math.random()*26);
+  const div=document.createElement('div');div.className='g-el';
+  div.innerHTML=genGhostSVG(seed,sz);
+  div.style.opacity=(0.45+Math.random()*.4).toFixed(2);
+  const g={el:div,sz,x:Math.random()*(innerWidth-sz-40)+20,y:Math.random()*(innerHeight*.75)+40,vx:(Math.random()-.5)*.42,vy:-(0.07+Math.random()*.25),w:Math.random()*Math.PI*2,ws:.009+Math.random()*.008,seed};
+  FL.push(g);arena.appendChild(div);
+  div.addEventListener('click',()=>onCatch(g));
+  div.addEventListener('touchstart',e=>{e.preventDefault();onCatch(g);},{passive:false});
+}
+(()=>{const loop=()=>{FL.forEach(g=>{g.w+=g.ws;g.x+=g.vx;g.y+=g.vy+Math.sin(g.w)*.3;if(g.x<-g.sz)g.x=innerWidth+10;if(g.x>innerWidth+10)g.x=-g.sz;if(g.y<-g.sz){g.y=innerHeight+10;g.x=Math.random()*innerWidth;}if(g.y>innerHeight+10)g.y=-g.sz;g.el.style.transform=`translate(${g.x|0}px,${g.y|0}px)`;});requestAnimationFrame(loop);};for(let i=0;i<6;i++)spawnF(i);loop();})();
+
+
+
+// ===== CATCH =====
+let caughtSeed=null,sigData=null;
+function onCatch(g){
+  if(document.getElementById('btnCatch').disabled)return;
+  g.el.classList.add('zap');
+  setTimeout(()=>{g.el.remove();FL.splice(FL.indexOf(g),1);},400);
+  setTimeout(()=>spawnF(Math.floor(Math.random()*100)),6000);
+  caughtSeed=g.seed;
+  const bc=document.getElementById('btnCatch');
+  bc.textContent='[ SIGNAL INTERCEPTED — CLAIM BELOW ]';bc.classList.add('done');
+  document.getElementById('popG').innerHTML=genGhostSVG(g.seed,96);
+  updSteps(3);showPop();
+}
+
+// ===== POPUP =====
+let cdIv=null,cdSec=600;
+const showPop=()=>{document.getElementById('ovl').classList.add('on');cdSec=600;updCd();clearInterval(cdIv);cdIv=setInterval(()=>{cdSec--;updCd();if(cdSec<=0){clearInterval(cdIv);hidePop();}},1000);};
+const hidePop=()=>{document.getElementById('ovl').classList.remove('on');clearInterval(cdIv);};
+const updCd=()=>{const m=String(Math.floor(cdSec/60)).padStart(2,'0'),s=String(cdSec%60).padStart(2,'0');document.getElementById('cdTimer').textContent=m+':'+s;};
+document.getElementById('btnDis').onclick=hidePop;
+document.getElementById('ovl').onclick=e=>{if(e.target.id==='ovl')hidePop();};
+document.getElementById('btnClaim').onclick=async()=>{if(!addr){await connect();if(!addr)return;}if(freeClaimed){toast('This wallet has already claimed.','er');hidePop();return;}hidePop();await doFree();};
+
+// ===== WALLET =====
+let prov=null,sign=null,addr=null,freeClaimed=false,mintActive=false,qty=1;
+document.getElementById('btnW').onclick=connect;
+async function connect(){
+  if(!window.ethereum){toast('No wallet detected. Install MetaMask.','er');return;}
+  try{
+    prov=new ethers.BrowserProvider(window.ethereum);
+    await prov.send('eth_requestAccounts',[]);
+    const net=await prov.getNetwork();
+    if(Number(net.chainId)!==1){toast('Switch to Ethereum Mainnet.','er');try{await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:'0x1'}]});}catch{}return;}
+    sign=await prov.getSigner();addr=await sign.getAddress();
+    const bw=document.getElementById('btnW');bw.textContent=addr.slice(0,6)+'...'+addr.slice(-4);bw.classList.add('on');
+    await loadUser();toast('Wallet connected.','nf');updSteps(2);
+  }catch{toast('Connection cancelled.','er');}
+}
+async function loadUser(){
+  if(!addr)return;
+  try{const ro=new ethers.Contract(CA,ABI,new ethers.JsonRpcProvider(RPC));freeClaimed=await ro.freeClaimed(addr);if(freeClaimed){const bc=document.getElementById('btnCatch');bc.textContent='[ FREE MINT ALREADY CLAIMED ]';bc.disabled=true;bc.classList.add('done');}updPrice();}catch{}
+}
+
+// ===== FREE MINT =====
+async function doFree(){
+  if(!sign){toast('Connect wallet first.','er');return;}
+  showTx('ESTABLISHING SIGNAL','Requesting signature from server…');
+  try{
+    const res=await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wallet:addr})});
+    const data=await res.json();
+    if(!data.signature)throw new Error(data.error||'Signing failed');
+    sigData=data;hideTx();
+    showTx('CONFIRM IN WALLET','Approve the free mint transaction…');
+    const c=new ethers.Contract(CA,ABI,sign);
+    const tx=await c.mint(1,data.deadline,data.signature,{value:0n});
+    showTx('TRANSMITTING…','Waiting for on-chain confirmation…');
+    await tx.wait();hideTx();
+    freeClaimed=true;updPrice();updSteps(5);
+    toast('Entity claimed. Check your wallet.','ok');loadStats();
+  }catch(e){hideTx();toast((e?.reason||e?.message||'Transaction failed').slice(0,72),'er');}
+}
+
+// ===== PAID MINT =====
+document.getElementById('btnMint').onclick=async()=>{
+  if(!sign){await connect();if(!sign)return;}
+  if(!mintActive){toast('Mint is not active.','er');return;}
+  showTx('CONFIRM IN WALLET',`Acquiring ${qty} entit${qty>1?'ies':'y'}…`);
+  try{
+    let cost=PRICE*BigInt(qty);if(!freeClaimed)cost-=PRICE;
+    const c=new ethers.Contract(CA,ABI,sign);
+    const dl=freeClaimed?0:(sigData?.deadline||Math.floor(Date.now()/1000)+600);
+    const sg=freeClaimed?'0x':(sigData?.signature||'0x');
+    const tx=await c.mint(qty,dl,sg,{value:cost});
+    showTx('TRANSMITTING…','Waiting for on-chain confirmation…');
+    await tx.wait();hideTx();
+    if(!freeClaimed){freeClaimed=true;updPrice();}
+    toast(`${qty} entit${qty>1?'ies':'y'} acquired.`,'ok');loadStats();
+  }catch(e){hideTx();toast((e?.reason||e?.message||'Transaction failed').slice(0,72),'er');}
+};
+
+// ===== QTY =====
+document.getElementById('qMin').onclick=()=>{if(qty>1){qty--;updPrice();}};
+document.getElementById('qMax').onclick=()=>{if(qty<10){qty++;updPrice();}};
+function updPrice(){
+  document.getElementById('qNum').textContent=qty;
+  const p1=document.getElementById('p1');
+  if(!freeClaimed){p1.textContent='FREE';p1.style.color='var(--w0)';document.getElementById('ptot').textContent=(0.0002*(qty-1)).toFixed(4)+' ETH';}
+  else{p1.textContent='0.0002 ETH';p1.style.color='var(--w1)';document.getElementById('ptot').textContent=(0.0002*qty).toFixed(4)+' ETH';}
+}
+updPrice();
+
+// ===== STATS =====
+async function loadStats(){
+  try{const ro=new ethers.Contract(CA,ABI,new ethers.JsonRpcProvider(RPC));const[sup,fr,act]=await Promise.all([ro.totalSupply(),ro.freeMinted(),ro.mintActive()]);document.getElementById('sMinted').textContent=sup.toString();document.getElementById('sFree').textContent=fr.toString();mintActive=act;}catch{}
+}
+loadStats();setInterval(loadStats,30000);
+
+// ===== STEPS =====
+function updSteps(n){['s1','s2','s3','s4','s5'].forEach((id,i)=>{document.getElementById(id).className=i+1<=n?'active':'';});}
+
+// ===== TX / TOAST =====
+function showTx(t,s){document.getElementById('txT').textContent=t;document.getElementById('txS').textContent=s;document.getElementById('txOvl').classList.add('on');}
+function hideTx(){document.getElementById('txOvl').classList.remove('on');}
+let tT;
+function toast(m,type='nf'){const el=document.getElementById('toast');el.textContent=m;el.className='toast on '+type;clearTimeout(tT);tT=setTimeout(()=>el.classList.remove('on'),4200);}
+</script>
+</body>
+</html>
